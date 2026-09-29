@@ -1,0 +1,343 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Contains the hooks for the extended FactoryClass.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+
+#include "always.h"
+
+#include "factoryext_hooks.h"
+
+#include "asserthandler.h"
+#include "debughandler.h"
+#include "extension_globals.h"
+#include "factory.h"
+#include "factoryext_init.h"
+#include "hooker.h"
+#include "house.h"
+#include "houseext.h"
+#include "mouse.h"
+#include "rulesext.h"
+#include "battleui.h"
+#include "techno.h"
+#include "technotype.h"
+#include "tibsun_globals.h"
+#include "unittypeext.h"
+#include "vinifera_globals.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static DECLARE_EXTENDING_CLASS_AND_PAIR(FactoryClass)
+{
+public:
+    void _Sanitize_Queue();
+    void _AI();
+    bool _Start(bool suspend);
+    void _Resume_Queue();
+    bool _Abandon();
+    void _Object_CRC(CRCEngine & crc) const;
+};
+
+
+/**
+ *  Checks if this factory should abandon construction because the objects
+ *  in the queue are no longer available to build.
+ *
+ *  @author: ZivDero
+ */
+void FactoryClassExt::_Sanitize_Queue()
+{
+    const TechnoClass* producing_object = Get_Object();
+
+    if (producing_object == nullptr) {
+        return;
+    }
+
+    const TechnoTypeClass* producing_type = producing_object->TClass;
+    const RTTIType type = producing_type->RTTI;
+    const bool is_building = type == RTTI_BUILDING || type == RTTI_BUILDINGTYPE;
+
+    bool need_update = false;
+
+    // Check the thing we're currently building
+    if (!House->Can_Build(producing_type, false, true)) {
+        Abandon();
+        need_update = true;
+
+        // Cancel map placement
+        if (is_building && House == PlayerPtr) {
+            Map.PendingObject = nullptr;
+            Map.PendingObjectPtr = nullptr;
+            Map.PendingHouse = HOUSE_NONE;
+            Map.Set_Cursor_Shape(nullptr);
+        }
+    }
+
+    // Make sure there are no unavailable objects in the queue
+    for (int i = 0; i < QueuedObjects.Count(); i++) {
+        if (!House->Can_Build(QueuedObjects[i], false, true)) {
+            Remove_From_Queue(*QueuedObjects[i]);
+            need_update = true;
+            i--;
+        }
+    }
+
+    if (need_update) {
+        House->Update_Factories(type);
+        Resume_Queue();
+    }
+}
+
+
+/**
+ *  Reimplements the entire FactoryClass::Start function.
+ *  Fixes an issue where if you started construction with < Cost_Per_Tick() credits,
+ *  it would be instantly put on hold.
+ *
+ *  @author: ZivDero
+ */
+bool FactoryClassExt::_Start(bool suspend)
+{
+    if ((Object || SpecialItem) && IsSuspended && !Has_Completed()) {
+        const int time = Object ? Object->Time_To_Build() : 0;
+        int rate = time / STEP_COUNT;
+        rate = std::clamp(rate, 1, 255);
+
+        Set_Rate(rate);
+        IsSuspended = false;
+
+        if (House->Available_Money() >= Cost_Per_Tick()) {
+            IsOnHold = true;
+            if (suspend) {
+                Suspend(true);
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Reimplements the entire FactoryClass::AI function.
+ *
+ *  @author: ZivDero
+ */
+void FactoryClassExt::_AI()
+{
+    /**
+     *  If sticky techs are disabled, clear anything that's no longer available from the build queue.
+     */
+    if (RuleExtension->IsRecheckPrerequisites) {
+        _Sanitize_Queue();
+    }
+
+    if (!IsSuspended && (Object != nullptr || SpecialItem)) {
+        if (!Has_Completed() && Graphic_Logic()) {
+            IsDifferent = true;
+
+            int cost = Cost_Per_Tick();
+            cost = std::min(cost, Balance);
+
+            /*
+            **  Enough time has expired so that another production step can occur.
+            **  If there is insufficient funds, then go back one production step and
+            **  continue the countdown. The idea being that by the time the next
+            **  production step occurs, there may be sufficient funds available.
+            */
+            if (cost > House->Available_Money()) {
+                Set_Stage(Fetch_Stage() - 1);
+            }
+            else {
+                House->Spend_Money(cost);
+                Balance -= cost;
+            }
+
+            /**
+             *  Patch for InstantBuildCommandClass
+             *
+             *  @author: CCHyper
+             */
+            if (Vinifera_DeveloperMode) {
+                /*
+                **  If AIInstantBuild is toggled on, make sure this is a non-human AI house.
+                */
+                if (Vinifera_Developer_AIInstantBuild
+                    && !House->Is_Human_Player() && House != PlayerPtr) {
+                    Set_Stage(STEP_COUNT);
+                }
+
+                /*
+                **  If InstantBuild is toggled on, make sure the local player is a human house.
+                */
+                if (Vinifera_Developer_InstantBuild
+                    && House->Is_Human_Player() && House == PlayerPtr) {
+                    Set_Stage(STEP_COUNT);
+                }
+
+                /*
+                **  If the AI has taken control of the player house, it needs a special
+                **  case to handle the "player" instant build mode.
+                */
+                if (Vinifera_Developer_InstantBuild) {
+                    if (Vinifera_Developer_AIControl && House == PlayerPtr)
+                        Set_Stage(STEP_COUNT);
+                }
+
+            }
+
+            /*
+            **  If the production has completed, then suspend further production.
+            */
+            if (Fetch_Stage() == STEP_COUNT) {
+                IsSuspended = true;
+                Set_Rate(0);
+                House->Spend_Money(Balance);
+                Balance = 0;
+            }
+        }
+    }
+}
+
+
+/**
+ *  Reimplementation of FactoryClass::Resume_Queue.
+ *
+ *  @author: ZivDero
+ */
+void FactoryClassExt::_Resume_Queue()
+{
+    if (QueuedObjects.Count()) {
+        if (Object == nullptr && (!Fetch_Rate() || IsSuspended)) {
+            const TechnoTypeClass* object = QueuedObjects[0];
+            QueuedObjects.Delete(0);
+            int id = object->Fetch_Heap_ID();
+            if (id >= 0) {
+                Extension::Fetch(House)->Begin_Production(object->RTTI, id, true, TechnoTypeClassExtension::Get_Production_Flags(object->RTTI, id));
+            }
+        }
+    }
+}
+
+
+/**
+ *  Reimplementation of FactoryClass::Abandon.
+ *
+ *  @author: ZivDero
+ */
+bool FactoryClassExt::_Abandon()
+{
+    if (Object) {
+
+        DEBUG_INFO("Abandoning production of {}\n", Object->Class_Of()->GivenName);
+
+        /*
+        **  Refund all money expended so far, back to the owner of the object under construction.
+        */
+        int money = Object->Class_Of()->Cost_Of(Object->House);
+        House->Refund_Money(money - Balance);
+        Balance = 0;
+
+        if (SpecialItem) {
+            SpecialItem = SUPER_NONE;
+        }
+
+        /*
+        **  Set the factory back to the idle and empty state.
+        */
+        Set_Rate(0);
+        Set_Stage(0);
+        IsSuspended = true;
+        IsDifferent = true;
+
+        if (!House->Is_Human_Player()) {
+            if (Object->RTTI == RTTI_INFANTRY) {
+                House->BuildInfantry = INFANTRY_NONE;
+            }
+            if (Object->RTTI == RTTI_UNIT) {
+                if (Extension::Fetch(Object->TClass)->IsNaval) {
+                    Extension::Fetch(House)->BuildNavalUnit = UNIT_NONE;
+                } else {
+                    House->BuildUnit = UNIT_NONE;
+                }
+            }
+            if (Object->RTTI == RTTI_AIRCRAFT) {
+                House->BuildAircraft = AIRCRAFT_NONE;
+            }
+            if (Object->RTTI == RTTI_BUILDING) {
+                House->BuildStructure = STRUCT_NONE;
+            }
+        }
+
+        /*
+        **  Delete the object under construction.
+        */
+        ScenarioInit++;
+        delete Object;
+        Object = nullptr;
+        ScenarioInit--;
+
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ *  Reimplementation of FactoryClass::Object_CRC. Adds sanity checks to prevent crashes.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void FactoryClassExt::_Object_CRC(CRCEngine& crc) const
+{
+    DEBUG_INFO("Frame == {}\n", Frame);
+    DEBUG_INFO("QueuedObjects.Count() == {}\n", QueuedObjects.Count());
+    if (Object != nullptr) DEBUG_INFO("Object->RTTI == {}\n", (int)Object->RTTI);
+    if (Object != nullptr) DEBUG_INFO("Object->HeapID == {}\n", Object->Fetch_Heap_ID());
+    DEBUG_INFO("IsSuspended\t= {}\n", IsSuspended);
+    DEBUG_INFO("IsDifferent\t= {}\n", IsDifferent);
+    DEBUG_INFO("Balance\t= {}\n", Balance);
+    DEBUG_INFO("OriginalBalance = {}\n", OriginalBalance);
+    DEBUG_INFO("SpecialItem\t= {}\n", SpecialItem);
+    if (House != nullptr) DEBUG_INFO("House->Fetch_ID()\t= {}\n", House->Fetch_ID());
+    DEBUG_INFO("ID\t= {}\n", Fetch_ID());
+
+    AbstractClass::Object_CRC(crc);
+
+    crc(IsSuspended);
+    crc(IsDifferent);
+    crc(Balance);
+    crc(OriginalBalance);
+    if (Object != nullptr) crc(Object->Fetch_ID());
+    crc(SpecialItem);
+    if (House != nullptr) crc(House->Fetch_ID());
+}
+
+
+/**
+ *  Main function for patching the hooks.
+ */
+void FactoryClassExtension_Hooks()
+{
+    /**
+     *  Initialises the extended class.
+     */
+    FactoryClassExtension_Init();
+
+    Patch_Jump(0x00496EA0, &FactoryClassExt::_AI);
+    Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
+    Patch_Jump(0x004978D0, &FactoryClassExt::_Resume_Queue);
+    Patch_Jump(0x00497330, &FactoryClassExt::_Abandon);
+    Patch_Jump(0x00497760, &FactoryClassExt::_Object_CRC);
+}

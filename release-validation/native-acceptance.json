@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "label": "Configurable Attack-Move experimental",
+  "dll_sha256": "196f1d0ba70b818aae848bb7f88f57b6372dfe2cc18d74b965c55be92b2fc5d5",
+  "native_gameplay": "partial",
+  "multiplayer": "unverified",
+  "checks": {
+    "normal_client_launch": "pending",
+    "fresh_skirmish": "pending",
+    "fresh_campaign": "pending",
+    "default_single_order": "pending",
+    "persistent_controls": "pending",
+    "weapon_range_preset": "pending",
+    "mixed_groups": "pending",
+    "engagement_route_continuation": "pending",
+    "medic_healing": "pending",
+    "vehicle_repair": "pending",
+    "move_replacement": "pending",
+    "stop_replacement": "pending",
+    "fresh_save_load": "pending",
+    "private_fixture_visible_launch": "pass"
+  },
+  "rules_sha256": "51ab72f6780a1f8b96d23d3661226973ad3b050c5254912f00bc43851173c464",
+  "firestorm_rules_sha256": "225763b20750fec89ac81477184c716df746d333c2890b96e0a1b6ded704cb04",
+  "fixture_map_sha256": "c75f935978efab0e2f9e7872b7c523f15e243c0b18e2cfbacd886dc8bb36cdce",
+  "preset_sha256": {
+    "default.ini": "fbd81071fe043fd8c66fabd6460d07aa9bc2da8831611c565066813d1f120e08",
+    "persistent.ini": "7b888711ede554bc91c3ea27e0b7a30635d75b63f53a25a8dd4dd0c73ba27568",
+    "weapon-range.ini": "b38fa2450164ff1959d16688dbd42332c17c9ad35a7c960e09dfd11f890f7548"
+  },
+  "observations": [
+    "First shell launch had a running process but no visible game window.",
+    "Direct desktop launcher attempt reported executable not found; retried with explicit working directory and arguments.",
+    "Desktop control was stopped with Escape before gameplay could be observed.",
+    "User confirmed the game is visible after the corrected launch. Gameplay outcomes have not yet been reported."
+  ],
+  "scope": "No native pass is inferred from automated checks or the earlier tested DLL.",
+  "preset_fixtures": {
+    "default": {
+      "status": "launch_confirmed_gameplay_pending",
+      "dll_sha256": "196f1d0ba70b818aae848bb7f88f57b6372dfe2cc18d74b965c55be92b2fc5d5",
+      "rules_sha256": "51ab72f6780a1f8b96d23d3661226973ad3b050c5254912f00bc43851173c464",
+      "firestorm_rules_sha256": "225763b20750fec89ac81477184c716df746d333c2890b96e0a1b6ded704cb04",
+      "map_sha256": "c75f935978efab0e2f9e7872b7c523f15e243c0b18e2cfbacd886dc8bb36cdce",
+      "preset_sha256": "fbd81071fe043fd8c66fabd6460d07aa9bc2da8831611c565066813d1f120e08"
+    },
+    "persistent": {
+      "status": "untested",
+      "dll_sha256": "196f1d0ba70b818aae848bb7f88f57b6372dfe2cc18d74b965c55be92b2fc5d5",
+      "rules_sha256": "51ab72f6780a1f8b96d23d3661226973ad3b050c5254912f00bc43851173c464",
+      "firestorm_rules_sha256": "225763b20750fec89ac81477184c716df746d333c2890b96e0a1b6ded704cb04",
+      "map_sha256": "41332e4462c6b446afa469eede8d0aeefd944253123f95329d3cbbab7aa53163",
+      "preset_sha256": "7b888711ede554bc91c3ea27e0b7a30635d75b63f53a25a8dd4dd0c73ba27568"
+    },
+    "weapon-range": {
+      "status": "untested",
+      "dll_sha256": "196f1d0ba70b818aae848bb7f88f57b6372dfe2cc18d74b965c55be92b2fc5d5",
+      "rules_sha256": "51ab72f6780a1f8b96d23d3661226973ad3b050c5254912f00bc43851173c464",
+      "firestorm_rules_sha256": "225763b20750fec89ac81477184c716df746d333c2890b96e0a1b6ded704cb04",
+      "map_sha256": "d236d7650710cdaa38334a297e44ec294d7b88cfdf7e138d9761a2b8bb332f72",
+      "preset_sha256": "b38fa2450164ff1959d16688dbd42332c17c9ad35a7c960e09dfd11f890f7548"
+    }
+  }
+}

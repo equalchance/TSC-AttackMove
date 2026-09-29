@@ -1,0 +1,231 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "production extraction boundaries",
+      "status": "PASS"
+    },
+    {
+      "name": "protocol marker",
+      "status": "PASS"
+    },
+    {
+      "name": "save marker",
+      "status": "PASS"
+    },
+    {
+      "name": "attack-move payload",
+      "status": "PASS"
+    },
+    {
+      "name": "event length uses payload size",
+      "status": "PASS"
+    },
+    {
+      "name": "event dispatches attack-move",
+      "status": "PASS"
+    },
+    {
+      "name": "replacement order hook",
+      "status": "PASS"
+    },
+    {
+      "name": "startup handshake hook",
+      "status": "PASS"
+    },
+    {
+      "name": "simulation CRC hook",
+      "status": "PASS"
+    },
+    {
+      "name": "save state fields",
+      "status": "PASS"
+    },
+    {
+      "name": "state CRC function",
+      "status": "PASS"
+    },
+    {
+      "name": "codec compressed add",
+      "status": "PASS"
+    },
+    {
+      "name": "codec compressed extract",
+      "status": "PASS"
+    },
+    {
+      "name": "codec uncompressed extract",
+      "status": "PASS"
+    },
+    {
+      "name": "attack-move event ID 38",
+      "status": "PASS"
+    },
+    {
+      "name": "global settings persisted in rules extension",
+      "status": "PASS"
+    },
+    {
+      "name": "per-type overrides persisted and checksummed",
+      "status": "PASS"
+    },
+    {
+      "name": "global and type INI overlays",
+      "status": "PASS"
+    },
+    {
+      "name": "literal percent parsing and fresh scenario reset",
+      "status": "PASS"
+    },
+    {
+      "name": "configuration connected to simulation",
+      "status": "PASS"
+    },
+    {
+      "name": "current save version rejects previous layouts",
+      "status": "PASS"
+    },
+    {
+      "name": "production logic",
+      "status": "PASS"
+    },
+    {
+      "name": "production configuration helpers",
+      "status": "PASS"
+    },
+    {
+      "name": "production feedback",
+      "status": "PASS"
+    },
+    {
+      "name": "production click hook",
+      "status": "PASS"
+    },
+    {
+      "name": "production event codec",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: support",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: secondary_infantry",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: defense",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: reacquire",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: recovery",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: combat_resume",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: input_once",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: persistent_input",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: config_crc",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: safety",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: range15",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: config_range",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: support_switches",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: melee",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: heal",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: repair",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: wildlife",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: primary_infantry",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: secondary_vehicle",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: armed_transport",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: payload",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: order",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: determinism",
+      "status": "PASS"
+    },
+    {
+      "name": "behavior: support_categories",
+      "status": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "extensions/techno/attackmove.cpp": "9824d674ce24793a4b77dbce98140a1d434ce8eaef22fe1e34d6079ae4cd2255",
+    "extensions/techno/attackmove_logic.h": "d23a193144960875dfacb04e8fb5e7aa44481298c0dffc67c8a2927d5fd7fed2",
+    "extensions/techno/attackmove_config.h": "fd0b89f8d5f6283a98f4ea45c67714c85bbacb5471d0269bf2826e591f4a0623",
+    "extensions/rules/rulesext.cpp": "e11421012ad4068d78ab14f2b3030cd4ce66ecce868a8252d8fa713b7abccff3",
+    "extensions/rules/rulesext.h": "4e9b9d686b309f2fb897b5a01bff6fff0e0e86c4396a075381a1f866c7c60fd9",
+    "extensions/technotype/technotypeext.cpp": "bce2f57bc2bfb0c50096c2344a8c31e8d461d249425ce33b97f388c938040d60",
+    "extensions/technotype/technotypeext.h": "7c85184cd6fd4588d1565459e86834abdac43cdf114d8f2d59fffc8bc565d262",
+    "extensions/techno/technoext.cpp": "5fce565b75e64cfdecd9a504d4b8024aceceda26bc7adee7c248358a2e965b7d",
+    "extensions/techno/technoext.h": "ec82808509823ddcd83a0c4ac297d986b647a8cd15dd25af725465dd06b8ffc3",
+    "extensions/event/eventext.cpp": "ebddc31ba3d0afb3732cbe72c0db6dccdb7911ca69f51eb0460d17de75dd22bf",
+    "extensions/event/eventext.h": "03325e733d33189fc2e0457037b00531ac7f076de6ffe74f83884a0b76f8c52d",
+    "extensions/event/eventext_hooks.cpp": "50d566b2c78d3929f0e0c6afba2d84e4c4d5df1e717714a4bad8063cfacf5baf",
+    "extensions/extension.cpp": "8b93607f9c6594ab0164a37162ef6406a6cc1bc70ac151201f7744ee3944eb79",
+    "extensions/display/displayext_hooks.cpp": "1cae49464b2da90f302d051ad03d46c8ad7e94e6c38ac0375eee866429e6248c",
+    "new/beacon/beacon_hooks.cpp": "75f2a1959cbf545ec3fdebf1b3bfda800cba79079e50534a26d8a71f074233f8",
+    "vinifera/vinifera_defines.h": "b6e76c00e5949ff9afc1befea17cb8724da88f0d3d4c010964f0298c8b1f7eb0"
+  },
+  "scope": "Extracted production bodies and source integration checks with engine doubles; native game, save/load, and network play require manual acceptance.",
+  "staging_checks": {
+    "status": "PASS",
+    "count": 6
+  },
+  "dll_sha256": "196f1d0ba70b818aae848bb7f88f57b6372dfe2cc18d74b965c55be92b2fc5d5",
+  "native_gameplay": "pending",
+  "multiplayer": "unverified"
+}

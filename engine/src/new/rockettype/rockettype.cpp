@@ -1,0 +1,383 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Class containing configuration for AircraftType rockets.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+
+#include "always.h"
+
+#include "rockettype.h"
+
+#include "aircrafttype.h"
+#include "animtype.h"
+#include "asserthandler.h"
+#include "ccini.h"
+#include "findmake.h"
+#include "tibsun_functions.h"
+#include "vinifera_globals.h"
+#include "vinifera_saveload.h"
+
+
+/**
+ *  Basic constructor for rocket objects.
+ *
+ *  @author: ZivDero
+ */
+RocketTypeClass::RocketTypeClass()
+{
+    RocketTypes.Add(this);
+}
+
+
+/**
+ *  Basic constructor for rocket objects.
+ *
+ *  @author: ZivDero
+ */
+RocketTypeClass::RocketTypeClass(const char* name) :
+    IniName(""),
+    PauseFrames(0),
+    TiltFrames(0),
+    PitchInitial(0.0f),
+    PitchFinal(0.0f),
+    TurnRate(0.0f),
+    RaiseRate(0),
+    Acceleration(0.0f),
+    Altitude(0),
+    Damage(0),
+    EliteDamage(0),
+    BodyLength(0),
+    IsLazyCurve(false),
+    IsCruiseMissile(false),
+    CloseEnoughFactor(1.0),
+    Type(nullptr),
+    Warhead(nullptr),
+    EliteWarhead(nullptr),
+    TakeoffAnim(nullptr),
+    TrailAnim(nullptr),
+    TrailSpawnDelay(3),
+    TrailAppearDelay(2),
+    Inaccuracy(0)
+{
+    ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for RocketType!");
+
+    std::strncpy(IniName, name, sizeof(IniName));
+
+    RocketTypes.Add(this);
+}
+
+
+/**
+ *  Class destructor.
+ *
+ *  @author: ZivDero
+ */
+RocketTypeClass::~RocketTypeClass()
+{
+    RocketTypes.Delete(this);
+}
+
+
+/**
+ *  Retrieves pointers to the supported interfaces on an object.
+ *
+ *  @author: CCHyper, tomsons26
+ */
+LONG RocketTypeClass::QueryInterface(REFIID riid, LPVOID* ppv)
+{
+    /**
+     *  Always set out parameter to NULL, validating it first.
+     */
+    if (ppv == nullptr) {
+        return E_POINTER;
+    }
+    *ppv = nullptr;
+
+    if (riid == __uuidof(IUnknown)) {
+        *ppv = reinterpret_cast<IUnknown*>(this);
+    }
+
+    if (riid == __uuidof(IStream)) {
+        *ppv = reinterpret_cast<IStream*>(this);
+    }
+
+    if (riid == __uuidof(IPersistStream)) {
+        *ppv = static_cast<IPersistStream*>(this);
+    }
+
+    if (*ppv == nullptr) {
+        return E_NOINTERFACE;
+    }
+
+    /**
+     *  Increment the reference count and return the pointer.
+     */
+    reinterpret_cast<IUnknown*>(*ppv)->AddRef();
+
+    return S_OK;
+}
+
+
+/**
+ *  Increments the reference count for an interface pointer to a COM object.
+ *
+ *  @author: CCHyper
+ */
+ULONG RocketTypeClass::AddRef()
+{
+    return 1;
+}
+
+
+/**
+ *  Decrements the reference count for an interface on a COM object.
+ *
+ *  @author: CCHyper
+ */
+ULONG RocketTypeClass::Release()
+{
+    return 1;
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *
+ *  @author: CCHyper
+ */
+HRESULT RocketTypeClass::GetClassID(CLSID* lpClassID)
+{
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
+}
+
+
+/**
+ *  Determines whether an object has changed since it was last saved to its stream.
+ *
+ *  @author: CCHyper
+ */
+HRESULT RocketTypeClass::IsDirty()
+{
+    return S_OK;
+}
+
+
+/**
+ *  Loads the object from the stream and requests a new pointer to
+ *  the class we extended post-load.
+ *
+ *  @author: ZivDero, CCHyper, tomsons26
+ */
+HRESULT RocketTypeClass::Load(IStream* pStm)
+{
+    if (!pStm) {
+        return E_POINTER;
+    }
+
+    /**
+     *  Load the unique id for this class.
+     */
+    LONG id = 0;
+    HRESULT hr = pStm->Read(&id, sizeof(LONG), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    /**
+     *  Register this instance to be available for remapping references to.
+     */
+    VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, IniName);
+
+    /**
+     *  Read this class's binary blob data directly into this instance.
+     */
+    hr = pStm->Read(this, sizeof(*this), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    new (this) RocketTypeClass(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Type, "Type");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Warhead, "Warhead");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(EliteWarhead, "EliteWarhead");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(TakeoffAnim, "TakeoffAnim");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(TrailAnim, "TrailAnim");
+
+    return hr;
+}
+
+
+/**
+ *  Saves the object to the stream.
+ *
+ *  @author: CCHyper, tomsons26
+ */
+HRESULT RocketTypeClass::Save(IStream* pStm, BOOL fClearDirty)
+{
+    if (!pStm) {
+        return E_POINTER;
+    }
+
+    /**
+     *  Fetch the save id for this instance.
+     */
+    const LONG id = reinterpret_cast<LONG>(this);
+
+    //DEV_DEBUG_INFO("Writing id = 0x{:08X}.\n", id);
+
+    HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    /**
+     *  Write this class instance as a binary blob.
+     */
+    hr = pStm->Write(this, sizeof(*this), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
+}
+
+
+/**
+ *  Retrieves the size of the stream needed to save the object.
+ *
+ *  @author: CCHyper, tomsons26
+ */
+LONG RocketTypeClass::GetSizeMax(ULARGE_INTEGER* pcbSize)
+{
+    if (!pcbSize) {
+        return E_POINTER;
+    }
+
+    pcbSize->LowPart = sizeof(*this) + sizeof(uint32_t); // Add size of swizzle "id".
+    pcbSize->HighPart = 0;
+
+    return S_OK;
+}
+
+
+/**
+ *  Retrieves the RocketType for given name.
+ *
+ *  @author: ZivDero
+ */
+RocketType RocketTypeClass::From_Name(const char *name)
+{
+    ASSERT(name != nullptr);
+
+    if (name != nullptr) {
+        for (RocketType Rocket = ROCKET_FIRST; Rocket < RocketTypes.Count(); Rocket++) {
+            if (std::strncmp(RocketTypes[Rocket]->IniName, name, sizeof(IniName)) == 0) {
+                return Rocket;
+            }
+        }
+    }
+
+    return ROCKET_NONE;
+}
+
+
+/**
+ *  Returns name for given Rocket type.
+ *
+ *  @author: ZivDero
+ */
+const char *RocketTypeClass::Name_From(RocketType type)
+{
+    ASSERT(type >= ROCKET_FIRST && type < RocketTypes.Count());
+
+    return RocketTypes[type]->IniName;
+}
+
+
+/**
+ *  Find the rocket that has this aircraft as its type.
+ *
+ *  @author: ZivDero
+ */
+const RocketTypeClass* RocketTypeClass::From_AircraftType(const AircraftTypeClass* type)
+{
+    if (!type)
+        return nullptr;
+
+    for (RocketType rocket = ROCKET_FIRST; rocket < RocketTypes.Count(); rocket++) {
+        if (RocketTypes[rocket]->Type == type) {
+            return RocketTypes[rocket];
+        }
+    }
+
+    return nullptr;
+}
+
+
+/**
+ *  Find or create a Rocket of the type specified.
+ *
+ *  @author: ZivDero
+ */
+const RocketTypeClass *RocketTypeClass::Find_Or_Make(const char *name)
+{
+    ASSERT(name != nullptr);
+
+    for (RocketType rocket = ROCKET_FIRST; rocket < RocketTypes.Count(); rocket++) {
+        if (std::strncmp(RocketTypes[rocket]->IniName, name, sizeof(IniName)) == 0) {
+            return RocketTypes[rocket];
+        }
+    }
+
+    RocketTypeClass *ptr = new RocketTypeClass(name);
+    ASSERT(ptr != nullptr);
+    return ptr;
+}
+
+
+/**
+ *  Reads Rocket object data from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool RocketTypeClass::Read_INI(CCINIClass& ini)
+{
+    if (!ini.Is_Present(IniName)) {
+        return false;
+    }
+
+    PauseFrames = ini.Get_Int(IniName, "PauseFrames", PauseFrames);
+    TiltFrames = ini.Get_Int(IniName, "TiltFrames", TiltFrames);
+    PitchInitial = ini.Get_Float(IniName, "PitchInitial", PitchInitial);
+    PitchFinal = ini.Get_Float(IniName, "PitchFinal", PitchFinal);
+    TurnRate = ini.Get_Float(IniName, "TurnRate", TurnRate);
+    RaiseRate = ini.Get_Int(IniName, "RaiseRate", RaiseRate);
+    Acceleration = ini.Get_Float(IniName, "Acceleration", Acceleration);
+    Altitude = ini.Get_Int(IniName, "Altitude", Altitude);
+    Damage = ini.Get_Int(IniName, "Damage", Damage);
+    EliteDamage = ini.Get_Int(IniName, "EliteDamage", EliteDamage);
+    BodyLength = ini.Get_Int(IniName, "BodyLength", BodyLength);
+    IsLazyCurve = ini.Get_Bool(IniName, "LazyCurve", IsLazyCurve);
+    IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
+    CloseEnoughFactor = ini.Get_Float(IniName, "CloseEnoughFactor", CloseEnoughFactor);
+    Type = TGet_Class(ini, IniName, "Type", Type);
+    Warhead = TGet_Class(ini, IniName, "Warhead", Warhead);
+    EliteWarhead = TGet_Class(ini, IniName, "EliteWarhead", EliteWarhead);
+    TakeoffAnim = TGet_Class(ini, IniName, "TakeoffAnim", TakeoffAnim);
+    TrailAnim = TGet_Class(ini, IniName, "TrailAnim", TrailAnim);
+    TrailSpawnDelay = ini.Get_Int(IniName, "TrailSpawnDelay", TrailSpawnDelay);
+    TrailAppearDelay = ini.Get_Int(IniName, "TrailAppearDelay", TrailAppearDelay);
+    Inaccuracy = ini.Get_Int(IniName, "Inaccuracy", Inaccuracy);
+
+    return true;
+}

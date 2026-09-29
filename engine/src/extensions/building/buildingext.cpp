@@ -1,0 +1,252 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Extended BuildingClass class.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+
+#include "always.h"
+
+#include "buildingext.h"
+
+#include "asserthandler.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
+#include "extension.h"
+#include "house.h"
+#include "housetype.h"
+#include "wwcrc.h"
+
+
+/**
+ *  Class constructor.
+ *
+ *  @author: CCHyper
+ */
+BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
+    TechnoClassExtension(this_ptr),
+    ProduceCashTimer(),
+    CurrentProduceCashBudget(-1),
+    IsCaptureOneTimeCashGiven(false),
+    IsBudgetDepleted(false),
+    LastFlameSpawnFrame(0)
+{
+    BuildingExtensions.Add(this);
+}
+
+
+/**
+ *  Class no-init constructor.
+ *  
+ *  @author: CCHyper
+ */
+BuildingClassExtension::BuildingClassExtension(const NoInitClass &noinit) :
+    TechnoClassExtension(noinit)
+{
+}
+
+
+/**
+ *  Class destructor.
+ *  
+ *  @author: CCHyper
+ */
+BuildingClassExtension::~BuildingClassExtension()
+{
+    BuildingExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT BuildingClassExtension::GetClassID(CLSID *lpClassID)
+{
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
+}
+
+
+/**
+ *  Initializes an object from the stream where it was saved previously.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT BuildingClassExtension::Load(IStream *pStm)
+{
+    HRESULT hr = TechnoClassExtension::Load(pStm);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+
+    new (this) BuildingClassExtension(NoInitClass());
+    
+    return hr;
+}
+
+
+/**
+ *  Saves an object to the specified stream.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT BuildingClassExtension::Save(IStream *pStm, BOOL fClearDirty)
+{
+    HRESULT hr = TechnoClassExtension::Save(pStm, fClearDirty);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
+}
+
+
+/**
+ *  Return the raw size of class data for save/load purposes.
+ *  
+ *  @author: CCHyper
+ */
+int BuildingClassExtension::Get_Object_Size() const
+{
+    return sizeof(*this);
+}
+
+
+
+
+/**
+ *  Compute a unique crc value for this instance.
+ *  
+ *  @author: CCHyper
+ */
+void BuildingClassExtension::Object_CRC(CRCEngine &crc) const
+{
+    /**
+     *  #issue-26
+     * 
+     *  Members for the Produce Cash logic.
+     */
+    crc(ProduceCashTimer());
+}
+
+/**
+ *  #issue-26
+ * 
+ *  The produce cash per-frame update function.
+ *  
+ *  @author: CCHyper
+ */
+void BuildingClassExtension::Produce_Cash_AI()
+{
+    const BuildingClass *this_building = reinterpret_cast<const BuildingClass *>(This());
+    const BuildingTypeClass *this_buildingtype = reinterpret_cast<const BuildingTypeClass *>(This()->Class_Of());
+
+    /**
+     *  Fetch the extension instance.
+     */
+    BuildingTypeClassExtension *buildingtypeext = Extension::Fetch(this_buildingtype);
+
+#if 0
+    /**
+     *  Debugging code.
+     * 
+     *  Only updates player owned buildings.
+     */
+    if (This()->House != PlayerPtr) {
+        return;
+    }
+#endif
+
+    /**
+     *  Is this building able to produce cash?
+     */
+    if (!IsBudgetDepleted && buildingtypeext->ProduceCashAmount != 0) {
+
+        /**
+         *  Check if this building requires power to produce cash.
+         */
+        if (this_buildingtype->IsPowered) {
+
+            /**
+             *  Stop the timer if the building is offline or has low power.
+             */
+            if (ProduceCashTimer.Is_Active() && !This()->Is_Powered_On()) {
+                ProduceCashTimer.Stop();
+            }
+
+            /**
+             *  Restart the timer is if it previously stopped due to low power or is offline.
+             */
+            if (!ProduceCashTimer.Is_Active() && This()->Is_Powered_On()) {
+                ProduceCashTimer.Start();
+            }
+
+        }
+
+        /**
+         *  Are we ready to hand out some cash?
+         */
+        if (ProduceCashTimer.Is_Active() && ProduceCashTimer.Expired()) {
+
+            /**
+             *  Is the owner a passive house? If so, they should not be receiving cash.
+             */
+            if (!This()->House->Class->IsMultiplayPassive) {
+
+                int amount = buildingtypeext->ProduceCashAmount;
+
+                /**
+                 *  Check we have not depleted our budget first.
+                 */
+                if (CurrentProduceCashBudget > 0) {
+
+                    /**
+                     *  Adjust the budget tracker (if one as been set).
+                     */
+                    if (CurrentProduceCashBudget != -1) {
+                        CurrentProduceCashBudget -= std::max<unsigned>(0, std::abs(amount));
+                    }
+
+                    /**
+                     *  Has the budget been spent?
+                     */
+                    if (CurrentProduceCashBudget <= 0) {
+                        IsBudgetDepleted = true;
+                        CurrentProduceCashBudget = -1;
+                    }
+
+                }
+
+                /**
+                 *  Check if we need to drain cash from the house or provide a bonus.
+                 */
+                if (!IsBudgetDepleted && amount != 0) {
+                    if (amount < 0) {
+                        This()->House->Spend_Money(std::abs(amount));
+                    } else {
+                        This()->House->Refund_Money(amount);
+                    }
+                }
+
+            }
+
+            /**
+             *  Reset the delay timer.
+             */
+            ProduceCashTimer = buildingtypeext->ProduceCashDelay;
+
+        }
+
+    }
+
+}

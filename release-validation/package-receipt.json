@@ -1,0 +1,168 @@
+{
+  "archives": [
+    {
+      "bytes": 103758,
+      "files": 29,
+      "name": "AttackMove-Kit.zip",
+      "sha256": "207341207f7a54637f6c6fbf44b9dce2c176cb51b780ed647cd7e9f51ce4e450"
+    },
+    {
+      "bytes": 1556804809,
+      "files": 1204,
+      "name": "TSC-AttackMove-playable.zip",
+      "sha256": "5d9dad4468326fcdbbf75aa51e85bad3e95dbc1724e134caa2b776530c8108bf"
+    },
+    {
+      "bytes": 27750613,
+      "files": 3883,
+      "name": "TSC-AttackMove-SOURCE.zip",
+      "sha256": "6963f2c22a10cf68e2144d43ad944a4e1b83098826d2888b099f5907936c827b"
+    }
+  ],
+  "audit": {
+    "enabled_rules_types": [
+      "4TNK",
+      "ART2",
+      "BGGY",
+      "BIKE",
+      "CTECH",
+      "CYBORG",
+      "CYC2",
+      "DEFENDER",
+      "DOGGIE",
+      "E1",
+      "E2",
+      "E3",
+      "ELCAD",
+      "FLMTNK",
+      "GHOST",
+      "HMEC",
+      "HUEY",
+      "HVR",
+      "JFISH",
+      "JUGG",
+      "MMCH",
+      "MUTANT",
+      "MUTANT3",
+      "MWMN",
+      "OXANNA",
+      "REAPER",
+      "SMECH",
+      "SONIC",
+      "STNK",
+      "SUBTANK",
+      "TTNK",
+      "UMAGON",
+      "VISC_LRG"
+    ],
+    "map_overrides_enabled": {
+      "Maps/Fan-made/lost_contact.map": [
+        "MUTASS",
+        "MUTE3"
+      ],
+      "Maps/Fan-made/sunstroke.map": [
+        "CIV1"
+      ],
+      "Maps/Fan-made/the_hills_have_eyes.map": [
+        "CAR",
+        "CIV1",
+        "CIV2",
+        "CIV3",
+        "CIV4",
+        "CIV5",
+        "CIV6",
+        "PICK",
+        "TRUCKA",
+        "WINI"
+      ],
+      "Maps/Missions/fsgdi03.map": [
+        "CIV1",
+        "CIV2",
+        "CIV3",
+        "SLAV"
+      ],
+      "Maps/Missions/fsgdi05.map": [
+        "SLAV"
+      ],
+      "Maps/Missions/fsnod02.map": [
+        "SLAV"
+      ],
+      "Maps/Missions/nod11a.map": [
+        "SLAV"
+      ],
+      "Maps/Missions/nod3b.map": [
+        "SLAV"
+      ],
+      "Maps/Missions/nod6a.map": [
+        "BUS",
+        "CAR",
+        "PICK",
+        "WINI"
+      ],
+      "Maps/Missions/nod8a.map": [
+        "SLAV"
+      ],
+      "Maps/Tiberian Sun/g_knoll.map": [
+        "SLAV"
+      ]
+    },
+    "map_types_for_review": {
+      "INI/Game Options/No Silos.ini": [
+        "STORAGEU"
+      ]
+    },
+    "maps_scanned": 133,
+    "rules_type_count": 73
+  },
+  "changed_from_installed_game": [
+    "INI/Keyboard.ini",
+    "INI/Rules.ini",
+    "Keyboard.ini",
+    "Map Editor/FinalSun/FinalSun.ini",
+    "Maps/Fan-made/lost_contact.map",
+    "Maps/Fan-made/sunstroke.map",
+    "Maps/Fan-made/the_hills_have_eyes.map",
+    "Maps/Missions/fsgdi03.map",
+    "Maps/Missions/fsgdi05.map",
+    "Maps/Missions/fsnod02.map",
+    "Maps/Missions/nod11a.map",
+    "Maps/Missions/nod3b.map",
+    "Maps/Missions/nod6a.map",
+    "Maps/Missions/nod8a.map",
+    "Maps/Tiberian Sun/g_knoll.map",
+    "README - Attack Move.txt",
+    "Resources/ClientDefinitions.ini",
+    "Resources/KeyboardCommands.ini",
+    "SUN.ini",
+    "Vinifera.dll"
+  ],
+  "checks": {
+    "default_single_order": "pending",
+    "engagement_route_continuation": "pending",
+    "fresh_campaign": "pending",
+    "fresh_save_load": "pending",
+    "fresh_skirmish": "pending",
+    "medic_healing": "pending",
+    "mixed_groups": "pending",
+    "move_replacement": "pending",
+    "normal_client_launch": "pending",
+    "persistent_controls": "pending",
+    "private_fixture_visible_launch": "pass",
+    "stop_replacement": "pending",
+    "vehicle_repair": "pending",
+    "weapon_range_preset": "pending"
+  },
+  "dll_sha256": "196f1d0ba70b818aae848bb7f88f57b6372dfe2cc18d74b965c55be92b2fc5d5",
+  "format": 1,
+  "label": "TSC Attack Move experimental",
+  "multiplayer": "unverified",
+  "native_gameplay": "partial",
+  "native_receipt": "native-acceptance.json",
+  "privacy_scan": "ASCII, UTF-16LE, UTF-16BE; all game and source files",
+  "receipt_sha256": "d0affc08e8e74ce1c78ff627c7a06e2d87e10a3ae633145462ae95273a0c7d8f",
+  "source_rebuild": {
+    "receipt": "source-rebuild.json",
+    "sha256": "51435e5b834e73962b7fce976b1e08bcd117fa5fa41f35b8c7a533adaa1cadb1",
+    "status": "PASS"
+  }
+}

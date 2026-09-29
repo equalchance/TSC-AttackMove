@@ -1,0 +1,129 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Contains the hooks for the extended TextLabelClass.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+
+#include "always.h"
+
+#include "txtlabelext_hooks.h"
+
+#include "colorscheme.h"
+#include "hooker.h"
+#include "tibsun_globals.h"
+#include "txtlabel.h"
+#include "uicontrol.h"
+#include "wwfont.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class TextLabelClassExt : public TextLabelClass
+{
+    public:
+        bool _Draw_Me(bool forced = false);
+};
+
+
+/**
+ *  Reimplementation of TextLabelClass::Draw_Me.
+ * 
+ *  @author: CCHyper
+ */
+bool TextLabelClassExt::_Draw_Me(bool forced)
+{
+    if (!GadgetClass::Draw_Me(forced)) {
+        return false;
+    }
+
+    if (!ColorSchemes.Count()) {
+        return false;
+    }
+
+    ColorScheme *scheme = ColorSchemes[Color];
+    if (!scheme) {
+        return false;
+    }
+
+    Point2D xy = Point2D(X, Y);
+    Rect rect = LogicalSurface->Get_Rect();
+    TextPrintType style = Style;
+
+    /**
+     *  #issue-74
+     * 
+     *  Adds option to control the transparency of the text background.
+     * 
+     *  @author: CCHyper
+     */
+    if (UIControls->TextLabelBackgroundTransparency > 0) {
+
+        RGBClass black_color(0,0,0);
+        FontClass *font = Font_Ptr(style);
+
+        Rect text_rect;
+        font->String_Pixel_Bounds(Text, text_rect);
+
+        /**
+         *  Kludge to remove the space at the end of a line as it is being typed.
+         */
+        if (Text[std::strlen(Text)-1] == ' ') {
+            text_rect.Width -= font->Char_Pixel_Width(' ');
+        }
+
+        /**
+         *  Move the rect into place. Due to the returned rect of the text and
+         *  how the text label is positioned, we need to manually adjust all
+         *  all lines other than the first.
+         */
+        if (Y == TacticalRect.Y) {
+            text_rect.Y += Y;
+        } else {
+            text_rect.Y += Y+2;
+            text_rect.Height -= 2;
+        }
+
+        LogicalSurface->Fill_Rect_Trans(text_rect, black_color,
+                                      UIControls->TextLabelBackgroundTransparency);
+    }
+
+    /**
+     *  #issue-74
+     * 
+     *  Adds option to set if the text has an outline or not.
+     * 
+     *  @author: CCHyper
+     */
+    if (!UIControls->IsTextLabelOutline) {
+        style |= TPF_NOSHADOW;
+    }
+
+    if (PixWidth == -1) {
+        Simple_Text_Print(Text, *LogicalSurface, rect, xy, scheme, COLOR_TBLACK, style, TPF_8POINT | TPF_DROPSHADOW);
+    } else {
+        Conquer_Clip_Text_Print(Text, *LogicalSurface, rect, xy, scheme, COLOR_TBLACK, style, PixWidth);
+    }
+
+#ifndef NDEBUG
+    //DEV_DEBUG_INFO("Label: '{}'\n", Text);
+#endif
+
+    return true;
+}
+
+
+/**
+ *  Main function for patching the hooks.
+ */
+void TextLabelClassExtension_Hooks()
+{
+    Patch_Jump(0x0064D120, &TextLabelClassExt::_Draw_Me);
+}

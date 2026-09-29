@@ -1,0 +1,122 @@
+/*******************************************************************************
+/*                     O P E N  S O U R C E  --  T S + +                      **
+/*******************************************************************************
+ *  @brief  Base locomotion class.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+#pragma once
+
+#include "always.h"
+#include "ilocomotion.h"
+#include "tibsun_defines.h"
+
+
+class NoInitClass;
+class TechnoClass;
+class FootClass;
+
+
+class LocomotionClass : public IPersistStream, public ILocomotion
+{
+public:
+    /**
+     *  IUnknown
+     */
+    IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
+    IFACEMETHOD_(ULONG, AddRef)();
+    IFACEMETHOD_(ULONG, Release)();
+
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD_(LONG, IsDirty)();
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
+    IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER* pcbSize);
+
+    /**
+     *  ILocomotion
+     */
+    IFACEMETHOD(Link_To_Object)(void* object);
+    IFACEMETHOD_(bool, Is_Moving)();
+    IFACEMETHOD_(Coord, Destination)();
+    IFACEMETHOD_(Coord, Head_To_Coord)();
+    IFACEMETHOD_(MoveType, Can_Enter_Cell)(Cell cell);
+    IFACEMETHOD_(bool, Is_To_Have_Shadow)();
+    IFACEMETHOD_(Matrix3D, Draw_Matrix)(int* key);
+    IFACEMETHOD_(Matrix3D, Shadow_Matrix)(int* key);
+    IFACEMETHOD_(Point2D, Draw_Point)();
+    IFACEMETHOD_(Point2D, Shadow_Point)();
+    IFACEMETHOD_(VisualType, Visual_Character)(bool flag);
+    IFACEMETHOD_(int, Z_Adjust)();
+    IFACEMETHOD_(ZGradientType, Z_Gradient)();
+    IFACEMETHOD_(bool, Process)();
+    IFACEMETHOD_(void, Move_To)(Coord to);
+    IFACEMETHOD_(void, Stop_Moving)();
+    IFACEMETHOD_(void, Do_Turn)(DirType coord);
+    IFACEMETHOD_(void, Unlimbo)();
+    IFACEMETHOD_(void, Tilt_Pitch_AI)();
+    IFACEMETHOD_(bool, Power_On)();
+    IFACEMETHOD_(bool, Power_Off)();
+    IFACEMETHOD_(bool, Is_Powered)();
+    IFACEMETHOD_(bool, Is_Ion_Sensitive)();
+    IFACEMETHOD_(bool, Push)(DirType dir);
+    IFACEMETHOD_(bool, Shove)(DirType dir);
+    IFACEMETHOD_(void, Force_Track)(int track, Coord coord);
+    IFACEMETHOD_(void, Force_Immediate_Destination)(Coord coord);
+    IFACEMETHOD_(void, Force_New_Slope)(TileRampType ramp);
+    IFACEMETHOD_(bool, Is_Moving_Now)();
+    IFACEMETHOD_(int, Apparent_Speed)();
+    IFACEMETHOD_(int, Drawing_Code)();
+    IFACEMETHOD_(FireErrorType, Can_Fire)();
+    IFACEMETHOD_(int, Get_Status)();
+    IFACEMETHOD_(void, Acquire_Hunter_Seeker_Target)();
+    IFACEMETHOD_(bool, Is_Surfacing)();
+    IFACEMETHOD_(void, Mark_All_Occupation_Bits)(MarkType mark);
+    IFACEMETHOD_(bool, Is_Moving_Here)(Coord to);
+    IFACEMETHOD_(bool, Will_Jump_Tracks)();
+    IFACEMETHOD_(bool, Is_Really_Moving_Now)();
+    IFACEMETHOD_(void, Stop_Movement_Animation)();
+    IFACEMETHOD_(void, Lock)();
+    IFACEMETHOD_(void, Unlock)();
+    IFACEMETHOD_(int, Get_Track_Number)();
+    IFACEMETHOD_(int, Get_Track_Index)();
+    IFACEMETHOD_(int, Get_Speed_Accum)();
+
+public:
+    LocomotionClass();
+    LocomotionClass(const NoInitClass& noinit);
+    virtual ~LocomotionClass();
+
+    virtual int Get_Object_Size(bool firestorm = false) const = 0;
+
+protected:
+    /**
+     *  #NOTE:
+     *  Non virtual override of IPersistStream::ILoad() to ensure derived classes
+     *  implement their own version, while making sure we handle the main locomotor
+     *  pointer at the start of the stream.
+     */
+    HRESULT STDMETHODCALLTYPE Locomotion_Load(IStream* pStm);
+
+public:
+    FootClass* LinkedTo;
+    bool IsPowered;
+    bool Dirty;
+    LONG RefCount;
+
+private:
+    LocomotionClass(const LocomotionClass&) = delete;
+    LocomotionClass& operator=(const LocomotionClass&) = delete;
+};
+
+
+/**
+ *  IPersist and IPersistStream com smart pointer declaration.
+ */
+_COM_SMARTPTR_TYPEDEF(IPersist, __uuidof(IPersist));
+// typedef _com_ptr_t<_com_IIID<IPersist, __uuidof(IPersist)> > IPersistPtr;
+
+_COM_SMARTPTR_TYPEDEF(IPersistStream, __uuidof(IPersistStream));
+// typedef _com_ptr_t<_com_IIID<IPersistStream, __uuidof(IPersistStream)> > IPersistStreamPtr;

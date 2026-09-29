@@ -1,0 +1,21 @@
+# Attack-move testing
+
+Build the engine first so CMake writes `build/compile_commands.json`. Then run:
+
+```powershell
+py -3 tools/test.py
+```
+
+The runner discovers the Visual Studio x86 compiler with `vswhere`, compiles isolated C++ fixtures, and writes `build/tests/test-receipt.json`. Use `--engine`, `--out`, and `--compile-commands` when testing another checkout or build directory. The output directory contains generated fixture sources and binaries; the runner does not change the game installation.
+
+The behavior fixture extracts the production attack-move command, eligibility, target selection, and tick functions. It checks mixed combat and support orders, secondary weapons, armed defenses, passive wildlife, 1.5× acquisition, 3× retention, healing and repair completion, repeated-combat route resumption without spending path retries, one order per activation, interrupted movement retries, Stop replacement, and atomic queue limits. Synthetic zero-direct-damage weapons cover fire and railgun particles, airburst and split child weapons, and harmless tools. The logic fixture checks deterministic frame cadence, target ties, queue bounds, the protocol marker, handshake, and state CRC field sensitivity. The event codec fixture executes the production compressed and uncompressed event functions against isolated queues, including round trips, truncation, forged issuer IDs, and queue wrap. The feedback fixture executes the production destination marker and right-click branch; its fake animation constructor checks that temporary `UniqueID=-3` produces the native local marker ID `-2` and restores the scenario ID.
+
+Source integration checks cover event ID 38 after PlayerOptions 36 and ResponseTime2 37, the event payload and dispatch, startup and simulation CRC hooks, the `0x54534103` protocol marker, the `0x54535303` save marker, and saved route fields. The configuration fixture checks defaults, inheritance, range boundaries and deterministic CRC inputs. These checks establish source wiring and isolated behavior. They do not establish a successful game launch, real pathfinding, native save/load, or multiplayer synchronization.
+
+Create a private native fixture with `tools/prepare_native_test.py --help` and choose a separate output directory. It copies the staged stock client and stays outside the playable package. Its `spawnmap.ini` uses the stock Terraces terrain and places a Medic, wounded rifleman, repair vehicle, damaged MCV, Mammoth, flame tank, Reaper, subterranean tank, and Ghost for the local player. Hostile infantry, a tank, and a laser defense provide targets. Run `Start attack-move test.cmd` in that folder after closing any prior game. Check whether the map starts and whether the local player owns the placed units before treating any attack-move result as evidence. Native gameplay acceptance is pending.
+
+For manual behavior checks, select the Medic alone and issue A to ground beyond the rifleman; verify healing and route continuation. Repeat with the repair vehicle and MCV. Issue A with each payload weapon and confirm target acquisition, then test a mixed group, a hostile defense, Move and Stop replacement, and a fresh save/load. Record the DLL hash alongside results. A local smoke pass applies only to the DLL and fixture tested; multiplayer requires a separate two-client check.
+
+The configurable revision passed 50 isolated production and source checks and six staging/package tests. The production test receipt is written to `build/tests/test-receipt.json`. Run staging/package tests with `py -3 -m unittest discover -s tests -p test_staging.py -v`. The earlier 40-check result belongs to the preceding revision. Keep native results separate and record unresolved checks explicitly.
+
+The earlier DLL received a hash-bound local native retest for launch, attack-move, one order per activation, route continuation and 1.5× acquisition. That receipt does not apply to the configurable revision. Repeat native checks with the new sanitized DLL and record its hash, settings, unresolved cases and multiplayer status. Use `py -3 tools/verify_hooks.py --game "path/to/game.exe"` to check the pinned reference executable before native testing; for another executable, revalidate the hook instructions and calling conventions.

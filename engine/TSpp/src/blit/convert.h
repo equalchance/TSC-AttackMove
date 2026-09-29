@@ -1,0 +1,148 @@
+/*******************************************************************************
+/*                     O P E N  S O U R C E  --  T S + +                      **
+/*******************************************************************************
+ *  @brief  Palette drawer.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+#pragma once
+
+#include "surface.h"
+#include "vector.h"
+
+
+class PaletteClass;
+class XSurface;
+class Blitter;
+class RLEBlitter;
+
+
+class ConvertClass
+{
+public:
+    ConvertClass();
+    ConvertClass(PaletteClass* artpalette, PaletteClass* screenpalette, Surface* typicalsurface, int intensity_levels = 1, bool quick_init = false);
+    ConvertClass(const NoInitClass& noinit);
+    virtual ~ConvertClass();
+
+    void Create_Blitters();
+    void Destroy_Blitters();
+
+    Blitter* Blitter_From_Flags(int flags);
+    RLEBlitter* RLEBlitter_From_Flags(int flags);
+
+    static void Reinitialize_Hicolor_Tables(int redleft, int redright, int greenleft, int greenright, int blueleft, int blueright);
+
+    unsigned Convert_Pixel(unsigned index) const
+    {
+        if (BBP == 1) return static_cast<unsigned char const*>(Translator)[index];
+        return static_cast<unsigned short const*>(Translator)[index];
+    }
+
+    static ConvertClass* Create_Drawer(const char* pal_filename, PaletteClass* pal, XSurface* surface);
+    static ConvertClass* Create_Drawer(const char* pal_filename);
+
+protected:
+    int BBP;
+    Blitter* PlainBlitter;          // No transparency (rarely used).
+    Blitter* TransBlitter;          // Skips transparent pixels.
+    Blitter* ShadowBlitter;         // Shadowizes the destination pixels.
+    Blitter* RemapBlitter;          // Remaps source pixels then draws with transparency.
+    Blitter* Translucent1Blitter;   // 25% translucent.
+    Blitter* Translucent2Blitter;   // 50% translucent.
+    Blitter* Translucent3Blitter;   // 75% translucent.
+    Blitter* BlitPlainXlatZReadPtr;
+    Blitter* BlitTransXlatZReadPtr;
+    Blitter* BlitTransDarkenZReadPtr;
+    Blitter* BlitTransZRemapXlatZReadPtr;
+    Blitter* BlitTransLucent75ZReadPtr;
+    Blitter* BlitTransLucent50ZReadPtr;
+    Blitter* BlitTransLucent25ZReadPtr;
+    Blitter* BlitTransLucent75ZReadWarpPtr;
+    Blitter* BlitTransLucent50ZReadWarpPtr;
+    Blitter* BlitTransLucent25ZReadWarpPtr;
+    Blitter* BlitPlainXlatZReadWritePtr;
+    Blitter* BlitTransXlatZReadWritePtr;
+    Blitter* BlitTransDarkenZReadWritePtr;
+    Blitter* BlitTransZRemapXlatZReadWritePtr;
+    Blitter* BlitTransLucent75ZReadWritePtr;
+    Blitter* BlitTransLucent50ZReadWritePtr;
+    Blitter* BlitTransLucent25ZReadWritePtr;
+    Blitter* BlitPlainXlatAlphaPtr;
+    Blitter* BlitTransXlatAlphaPtr;
+    Blitter* BlitTransZRemapXlatAlphaPtr;
+    Blitter* BlitTransLucent75AlphaPtr;
+    Blitter* BlitTransLucent50AlphaPtr;
+    Blitter* BlitTransLucent25AlphaPtr;
+    Blitter* BlitTransXlatWriteAlphaPtr;
+    Blitter* BlitTransXlatMultWriteAlphaPtr;
+    Blitter* BlitTranslucentWriteAlphaPtr;
+    Blitter* BlitTranslucent50NonzeroAlphaPtr;
+    Blitter* BlitTranslucent50ZeroAlphaPtr;
+    Blitter* BlitTranslucent75NonzeroAlphaPtr;
+    Blitter* BlitTranslucent75ZeroAlphaPtr;
+    Blitter* BlitPlainXlatAlpha_2Ptr;
+    Blitter* BlitTransXlatAlphaZReadPtr;
+    Blitter* BlitTransZRemapXlatAlphaZReadPtr;
+    Blitter* BlitTransLucent75AlphaZReadPtr;
+    Blitter* BlitTransLucent50AlphaZReadPtr;
+    Blitter* BlitTransLucent25AlphaZReadPtr;
+    Blitter* BlitTransLucent75AlphaZReadWarpPtr;
+    Blitter* BlitTransLucent50AlphaZReadWarpPtr;
+    Blitter* BlitTransLucent25AlphaZReadWarpPtr;
+    Blitter* BlitPlainXlatAlpha_3Ptr;
+    Blitter* BlitTransXlatAlphaZReadWritePtr;
+    Blitter* BlitTransZRemapXlatAlphaZReadWritePtr;
+    Blitter* BlitTransLucent75AlphaZReadWritePtr;
+    Blitter* BlitTransLucent50AlphaZReadWritePtr;
+    Blitter* BlitTransLucent25AlphaZReadWritePtr;
+    RLEBlitter* RLEBlitTransXlatPtr;
+    RLEBlitter* RLEBlitTransDarkenPtr;
+    RLEBlitter* RLEBlitTransZRemapXlatPtr;
+    RLEBlitter* RLEBlitTransLucent75Ptr;
+    RLEBlitter* RLEBlitTransLucent50Ptr;
+    RLEBlitter* RLEBlitTransLucent25Ptr;
+    RLEBlitter* RLEBlitTransXlatZReadPtr;
+    RLEBlitter* RLEBlitTransZRemapXlatZReadPtr;
+    RLEBlitter* RLEBlitTransDarkenZReadPtr;
+    RLEBlitter* RLEBlitTransLucent75ZReadPtr;
+    RLEBlitter* RLEBlitTransLucent50ZReadPtr;
+    RLEBlitter* RLEBlitTransLucent25ZReadPtr;
+    RLEBlitter* RLEBlitTransLucent75ZReadWarpPtr;
+    RLEBlitter* RLEBlitTransLucent50ZReadWarpPtr;
+    RLEBlitter* RLEBlitTransLucent25ZReadWarpPtr;
+    RLEBlitter* RLEBlitTransXlatZReadWritePtr;
+    RLEBlitter* RLEBlitTransZRemapXlatZReadWritePtr;
+    RLEBlitter* RLEBlitTransDarkenZReadWritePtr;
+    RLEBlitter* RLEBlitTransLucent75ZReadWritePtr;
+    RLEBlitter* RLEBlitTransLucent50ZReadWritePtr;
+    RLEBlitter* RLEBlitTransLucent25ZReadWritePtr;
+    RLEBlitter* RLEBlitTransXlatAlphaPtr;
+    RLEBlitter* RLEBlitTransZRemapXlatAlphaPtr;
+    RLEBlitter* RLEBlitTransLucent75AlphaPtr;
+    RLEBlitter* RLEBlitTransLucent50AlphaPtr;
+    RLEBlitter* RLEBlitTransLucent25AlphaPtr;
+    RLEBlitter* RLEBlitTransXlatAlphaZReadPtr;
+    RLEBlitter* RLEBlitTransZRemapXlatAlphaZReadPtr;
+    RLEBlitter* RLEBlitTransLucent75AlphaZReadPtr;
+    RLEBlitter* RLEBlitTransLucent50AlphaZReadPtr;
+    RLEBlitter* RLEBlitTransLucent25AlphaZReadPtr;
+    RLEBlitter* RLEBlitTransLucent75AlphaZReadWarpPtr;
+    RLEBlitter* RLEBlitTransLucent50AlphaZReadWarpPtr;
+    RLEBlitter* RLEBlitTransLucent25AlphaZReadWarpPtr;
+    RLEBlitter* RLEBlitTransXlatAlphaZReadWritePtr;
+    RLEBlitter* RLEBlitTransZRemapXlatAlphaZReadWritePtr;
+    RLEBlitter* RLEBlitTransLucent75AlphaZReadWritePtr;
+    RLEBlitter* RLEBlitTransLucent50AlphaZReadWritePtr;
+    RLEBlitter* RLEBlitTransLucent25AlphaZReadWritePtr;
+
+public:
+    int IntensityLevels;
+    void* IntensityTranslator;
+    void* Translator;
+    int ShadowTable;
+    int RemapTable;
+    int HalfbrightMask;
+    int QuarterbrightMask;
+};

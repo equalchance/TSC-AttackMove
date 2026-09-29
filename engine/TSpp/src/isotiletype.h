@@ -1,0 +1,123 @@
+/*******************************************************************************
+/*                     O P E N  S O U R C E  --  T S + +                      **
+/*******************************************************************************
+ *  @brief  Class for isometric tile types.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+#pragma once
+
+#include "objecttype.h"
+#include "tibsun_defines.h"
+#include "vector.h"
+
+
+class CCINIClass;
+class AnimTypeClass;
+
+
+class DECLSPEC_UUID("5AF2CE7A-0634-11D2-ACA4-006008055BB5")
+IsometricTileTypeClass : public ObjectTypeClass
+{
+public:
+    /**
+     *  IPersist
+     */
+    IFACEMETHOD(GetClassID)(CLSID* pClassID);
+
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
+
+public:
+    IsometricTileTypeClass(IsometricTileType type, char a2 = 0, char a3 = 0, const char* ini_name = nullptr, bool a5 = true);
+    IsometricTileTypeClass(const NoInitClass& noinit);
+    virtual ~IsometricTileTypeClass();
+
+    /**
+     *  AbstractClass
+     */
+    virtual void Detach(AbstractClass* target, bool all = true) override;
+    virtual RTTIType Fetch_RTTI() const override;
+    virtual int Get_Object_Size(bool firestorm = false) const override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
+    virtual int Fetch_Heap_ID() const override;
+
+    /**
+     *  ObjectTypeClass
+     */
+    virtual Coord Coord_Fixup(Coord* coord) const;
+    virtual bool Create_And_Place(Cell& cell, HouseClass* house = nullptr) const override;
+    virtual ObjectClass* const Create_One_Of(HouseClass* house = nullptr) const override;
+    virtual Cell* Occupy_List(bool placement = false) const override;
+
+private:
+    // Use Get_Tile_Data instead for IsometricTileTypeClass.
+    virtual ShapeSet* const Get_Image_Data() const;
+
+public:
+    IsoTileFileStruct* const Get_Tile_Data() const { return (IsoTileFileStruct*)IsometricTileTypeClass::Get_Image_Data(); }
+
+    LandType IsometricTileTypeClass::Land_Type(int tile) const;
+    // 004F34F0
+    void Load_Image_Data();
+    // 004F36B0
+    // 004F36E0
+    // 004F3720
+    // 004F3880
+    // 004F3890
+    // 004F39E0
+    // 004F56D0
+    // 004F5940
+    // 004F5A20
+    // 004F5A60
+    int Ramp_Type(int tile) const;
+    // 004F5B00
+    // 004F5B40
+    // 004F5CB0
+    // 004F6630
+    // 004F8160
+    // 004F8330
+    // 004F8390
+    // 004F8460
+    // 004F8740
+    // 004F8770
+    // 004F87B0
+    // 004F8A40
+    // 004F8A70
+
+    static IsometricTileType From_Name(const char* name);
+    static const char* Name_From(IsometricTileType type);
+
+public:
+    IsometricTileType HeapID;
+    IsometricTileType MarbleMadness;
+    IsometricTileType NonMarbleMadness;
+    int field_130;
+    DynamicVectorClass<unsigned short*> PreviewTiles;
+    IsometricTileTypeClass* NextTileTypeInSet;
+    IsometricTileType ToSnowTheater;
+    IsometricTileType ToTemperateTheater;
+    AnimType Anim;
+    int XOffset;
+    int YOffset;
+    int AttachesTo;
+    int ZAdjust;
+    int field_16C;
+    bool IsMorphable;
+    bool IsShadowCaster;
+    bool IsAllowToPlace;
+    bool IsRequiredForRMG;
+    int TileBlockHeight;
+    int TileBlockWidth;
+    int field_17C;
+    int TilesInSequence;
+    bool IsFileLoaded;
+    char Filename[12 + 4];
+    bool IsAllowBurrowing;
+    bool IsAllowTiberium;
+    int field_198;
+};

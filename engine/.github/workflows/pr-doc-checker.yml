@@ -1,0 +1,97 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+
+jobs:
+  Changelog-Check:
+    name: Changelog Mention
+    # Skipped when the 'Minor' label is set on the pull request.
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Minor') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check that Changelog has been updated
+        run: |
+          # Check that Changelog has been updated
+          if (git diff --name-only $(git merge-base origin/$BASE_BRANCH HEAD) | grep ^docs/Whats-New.md$)
+          then
+            echo "Thank you for remembering to update the Changelog! 😋"
+            exit 0
+          else
+            echo "It looks like you forgot to update the Changelog! 🧐"
+            echo "Please, mention your changes in 'docs/Whats-New.md'."
+            exit 1
+          fi
+
+  Credits-Check:
+    name: Credits List Mention
+    # Skipped when the 'Minor' label is set on the pull request.
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Minor') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check that Credits List has been updated
+        run: |
+          # Check that Credits List has been updated
+          if (git diff --name-only $(git merge-base origin/$BASE_BRANCH HEAD) | grep ^CREDITS.md$)
+          then
+            echo "Thank you for remembering to update the Credits List! 😋"
+            exit 0
+          else
+            echo "It looks like you forgot to update the Credits List! 🧐"
+            echo "Please, mention your contribution in 'CREDITS.md'."
+            exit 1
+          fi
+
+  Documentation-Check:
+    name: Documentation for Changes
+    # Skipped when the 'Minor' label is set on the pull request.
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Minor') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check that Documentation has been updated
+        run: |
+          # Check that Documentation has been updated
+          if (git diff --name-only $(git merge-base origin/$BASE_BRANCH HEAD) | \
+              grep \
+              -e ^docs/Bugfixes.md$   \
+              -e ^docs/New-Features-and-Enhancements.md$ \
+              -e ^docs/Mapping.md$ \
+              -e ^docs/User-Interface.md$ \
+              -e ^docs/Miscellaneous.md$ \
+          )
+          then
+            echo "Thank you for remembering to add your changes to the docs! 😋"
+            exit 0
+          else
+            echo "It looks like you forgot to add your changes to the docs! 🧐"
+            echo "Please, document your changes."
+            exit 1
+          fi

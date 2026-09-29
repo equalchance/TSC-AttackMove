@@ -1,0 +1,52 @@
+#
+# GitHub action to build and deploy nightly releases.
+#
+
+name: Nightly
+
+# Note: This is performed "only" on the default branch of the repository!
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # At the end of every day (midnight UTC).
+
+permissions:
+  contents: read
+
+jobs:
+  activity_check:
+    name: Activity check
+    runs-on: ubuntu-latest
+    outputs:
+      alive: ${{ steps.check.outputs.alive }}
+    steps:
+      # Uses the GitHub API to find the most recent commit. If it is older than
+      # a week the repository is considered stale and the nightly build is skipped.
+      - name: Activity check
+        id: check
+        shell: bash
+        run: |
+          curl -sL "https://api.github.com/repos/$GITHUB_REPOSITORY/commits" | jq -r '.[0]' > "$HOME/commit.json"
+          date="$(jq -r '.commit.author.date' "$HOME/commit.json")"
+          timestamp=$(date --utc -d "$date" +%s)
+          author="$(jq -r '.commit.author.name' "$HOME/commit.json")"
+          url="$(jq -r '.html_url' "$HOME/commit.json")"
+          days=$(( ( $(date --utc +%s) - timestamp ) / 86400 ))
+          rm -f "$HOME/commit.json"
+          echo "Repository activity : $timestamp $author $url"
+          if [ "$days" -lt 8 ]; then
+             echo "Repository active : $days days"
+             echo "alive=1" >> "$GITHUB_OUTPUT"
+          else
+             echo "[WARNING] Repository not updated : $days days ago — skipping nightly build"
+             echo "alive=0" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Nightly
+    needs: activity_check
+    if: needs.activity_check.outputs.alive == '1'
+    uses: ./.github/workflows/build.yml
+    with:
+      build-flag: NIGHTLY
+      artifact-prefix: vinifera-nightly

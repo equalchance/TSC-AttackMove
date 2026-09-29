@@ -1,0 +1,23 @@
+Attack-Move developer kit
+
+This kit ports Attack-Move to the pinned Tiberian Sun Client Vinifera baseline
+(commit 71a692a5f4a7d61cd1654f2544ee4d17fe473d70). Select units, press A,
+then click a destination. Eligible units engage targets on the route and resume
+movement afterward. The default settings acquire targets at 150% of weapon
+range and retain them to 300%; firing range does not change.
+
+Start with README.md, then configuration.md for keys and presets. The source
+files under src/extensions/techno/ are exact copies from the buildable source
+project. patches/attack-move.patch shows their integration with the pinned
+engine. manifest.json records the SHA-256 hash of every kit file and each
+added or modified engine file. The full-source ZIP carries the engine and
+dependencies needed to build the reference demo.
+
+The hook addresses and event 38 belong to the pinned TSC executable. Check
+validation/engine-hooks.json and docs/integration.md before adapting another
+port. Allocate your own event and compatibility markers if needed. This kit
+does not include the separate Chilong tiberium or campaign projectile changes.
+
+Native gameplay and multiplayer acceptance for this configurable source are
+pending. Run the isolated tests, then test your built DLL in a separate game
+copy. Record the DLL hash with the native results.

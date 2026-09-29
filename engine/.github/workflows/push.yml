@@ -1,0 +1,25 @@
+#
+# GitHub action to build and deploy the develop branch on push.
+#
+
+name: Push
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Push
+    uses: ./.github/workflows/build.yml
+    with:
+      build-flag: PREVIEW
+      artifact-prefix: vinifera-push

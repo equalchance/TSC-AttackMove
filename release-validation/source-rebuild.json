@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "source_archive_sha256": "6963f2c22a10cf68e2144d43ad944a4e1b83098826d2888b099f5907936c827b",
+  "extracted_directory_contained_spaces": true,
+  "git_metadata_required": false,
+  "source_files_match_original_build": 688,
+  "fresh_build_status": "COMPILE_LINK_PASS_RUNTIME_PENDING",
+  "raw_rebuilt_dll_sha256": "28434ba2622fa4af60faa78c1d61c162402fef4844c63e4f93256bbf751ec4f7",
+  "sanitized_rebuilt_dll_sha256": "28e468341f23741a6d82264b24e9414dfec06e51e080a41023e6b9df1b4b8507",
+  "exported_kit_tests": {
+    "status": "PASS",
+    "checks": 50
+  },
+  "scope": "Source reproducibility and successful independent compilation. No byte-identical DLL or native gameplay claim."
+}

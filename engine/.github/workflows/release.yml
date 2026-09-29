@@ -1,0 +1,22 @@
+#
+# GitHub action to build a release version.
+#
+
+name: Release
+
+# Note: This is performed "only" on the master branch of the repository!
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Release
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/build.yml
+    with:
+      build-flag: RELEASE
+      artifact-prefix: vinifera-release

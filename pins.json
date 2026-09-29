@@ -1,0 +1,17 @@
+{
+  "vinifera": {"repository": "https://github.com/Vinifera-Developers/Vinifera.git", "commit": "71a692a5f4a7d61cd1654f2544ee4d17fe473d70"},
+  "dependencies": {
+    "TSpp": "266750b28539ff039eb9838320bff9da8bc4ee2f",
+    "SDL": "63901401cab9051012d85c4bf245bea23687dce0",
+    "imgui": "b61e56346a92cfcaf1f43a545ca37b0b32239654",
+    "miniaudio": "7dface14c22c20f704974bfb0c4a5a18ac14f1d8"
+  },
+  "baseline_game_sha256": "20ffc96918756b7ff2508f513cb66a99f690508ab1351828c5ebcff38a08dc4e",
+  "baseline_vinifera_sha256": "f3b0acee8b8649df6eef9d50c27cc7d111a8378f4f211f420f319e1c3f648bf8",
+  "baseline_edb_sha256": "ce38fe94507e9f48c0aeb54c2b57b1eda24d4045918dd771b58dd414700f5d67",
+  "donor": "Chilong Public Experimental Build 5 (input-once source)",
+  "donor_attackmove_cpp_sha256": "bf079b2b3236c3714d89467e06600aca79c3005bcd1bfd2491cb4426f203345f",
+  "protocol": "0x54534103",
+  "save_marker": "0x54535303",
+  "attack_move_event": 38
+}

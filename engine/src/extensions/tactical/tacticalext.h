@@ -1,0 +1,204 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *  @brief  Extended Tactical class.
+ *
+ *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  Copyright (c) 2020-2026 Vinifera contributors
+ ******************************************************************************/
+
+#pragma once
+
+#include "audio_vox.h"
+#include "extension.h"
+#include "point.h"
+#include "stimer.h"
+#include "stringid.h"
+#include "tactical.h"
+#include "textprint.h"
+#include "ttimer.h"
+
+#include <string>
+
+
+class HouseClass;
+class CRCEngine;
+
+
+enum InfoTextPosType {
+    TOP_LEFT,
+    TOP_RIGHT,
+    BOTTOM_LEFT,
+    BOTTOM_RIGHT,
+};
+
+
+class TacticalExtension final : public GlobalExtensionClass<Tactical>
+{
+public:
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
+
+public:
+    TacticalExtension(const Tactical* this_ptr = nullptr);
+    TacticalExtension(const NoInitClass& noinit);
+    virtual ~TacticalExtension();
+
+    virtual int Get_Object_Size() const override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
+
+    virtual const char* Name() const override { return "TacticalMap"; }
+    virtual const char* Full_Name() const override { return "TacticalMap"; }
+
+    void Set_Info_Text(const char* text);
+    void Enable_Templated_Text(std::string_view label, ColorSchemeType color);
+    void Disable_Templated_Text();
+    void Clear_Templated_Text_Cache() { IsTemplatedTextCached = false; }
+
+    void Draw_Version_Number_Text();
+
+    void Draw_Debug_Overlay();
+    void Draw_FrameStep_Overlay();
+
+    void Draw_Information_Text();
+    void Draw_Super_Timers();
+    void Draw_Templated_Text();
+
+    void Render_Post();
+    void Flag_Cell(CellClass& cell);
+
+    void Beacon_Mode_Control(int control);
+    void Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset);
+
+    /**
+     *  VOX subtitle rendering. Set/Clear are called from the audio code when
+     *  a VOX starts/stops; Draw_Subtitle is called from the overlay render hook.
+     */
+    void Set_Subtitle(const char* text, SubtitleCategoryType cat);
+    void Clear_Subtitle();
+    void Draw_Subtitle();
+    bool Should_Show_Subtitle() const;
+    void Invalidate_Subtitle_Font();
+
+#ifndef NDEBUG
+    bool Debug_Draw_Facings();
+#endif
+
+private:
+    void Super_Draw_Timer(int row_index, ColorScheme* color, int time, const char* name, unsigned long* flash_time, bool* flash_state);
+
+public:
+    /**
+     *  Has information text been set?
+     */
+    bool IsInfoTextSet;
+
+    /**
+     *  The information text to print on the screen.
+     */
+    char InfoTextBuffer[512];
+
+    /**
+     *  Where on the screen shall the text be printed?
+     */
+    InfoTextPosType InfoTextPosition;
+
+    /**
+     *  Sound to play when this text is initially drawn.
+     */
+    VocType InfoTextNotifySound;
+
+    /**
+     *  Volume at which to play the initial sound.
+     */
+    float InfoTextNotifySoundVolume;
+
+    /**
+     *  The font style of the print text.
+     */
+    TextPrintType InfoTextStyle;
+
+    /**
+     *  The lifetime timer for the information text.
+     */
+    CDTimerClass<MSTimerClass> InfoTextTimer;
+
+    /**
+     *  Replacement cell redraw list, as the vanilla one is too small for modern screen sizes.
+     */
+    CellClass* CellRedraw[128 * 128]; // Not a solid number, just enough to never cause problems.
+
+    /**
+     *  The number of cells in the array above, only used after loading the game!
+     */
+    int CellRedrawCount;
+
+    /**
+     *  Is the templated text currently shown?
+     */
+    bool IsTemplatedTextVisible;
+
+    /**
+     *  Index of the tutorial text to show as the templated text.
+     */
+    FixedString<128> TemplatedTextIndex;
+
+    /**
+     *  Where on the screen shall the templated text be printed?
+     */
+    InfoTextPosType TemplatedTextPosition;
+
+    /**
+     *  Which color scheme should the templated text use?
+     */
+    ColorSchemeType TemplatedTextColor;
+
+    /**
+     *  The font style of the templated text.
+     */
+    TextPrintType TemplatedTextStyle;
+
+    /**
+     *  Is there a cached string containing the formatted templated text?
+     */
+    bool IsTemplatedTextCached;
+
+    /**
+     *  The cached string containing the formatted templated text.
+     */
+    char TemplatedTextCache[512];
+
+    /**
+     *  Is the player currently placing a beacon?
+     */
+    bool IsBeaconPlacementMode;
+    bool IsAttackMoveMode;
+
+    /**
+     *  Is the player currently editing a beacon's text?
+     */
+    bool IsEditingBeaconText;
+
+    /**
+     *  Currently displayed VOX subtitle (empty when nothing is playing or
+     *  the playing VOX has no Text=). Per-session UI state, not serialized.
+     */
+    std::string SubtitleText;
+    SubtitleCategoryType SubtitleCategoryCur;
+
+    /**
+     *  Cached Win32 HFONT (type-erased to avoid pulling windows.h into this
+     *  header), built lazily on first draw and rebuilt only when the related
+     *  ui.ini fields change. Owned by the extension; freed in the destructor
+     *  and on Invalidate_Subtitle_Font.
+     */
+    void* SubtitleFont;
+    std::string SubtitleFontCacheName;
+    int SubtitleFontCacheHeight;
+    int SubtitleFontCacheWeight;
+
+    /**
+     *  Records the last frame when EVA told the player that their harvester is under attack.
+     */
+    int LastHarvesterUnderAttackFrame;
+};

@@ -1,0 +1,146 @@
+{
+  "target": "game.exe",
+  "sha256": "20FFC96918756B7FF2508F513CB66A99F690508AB1351828C5EBCFF38A08DC4E",
+  "size": 3870720,
+  "image_base": "0x00400000",
+  "section": ".text",
+  "event_ids": {
+    "PLAYER_OPTIONS": 36,
+    "RESPONSE_TIME2": 37,
+    "ATTACK_MOVE": 38
+  },
+  "protocol_marker": "0x54534103",
+  "save_marker": "0x54535303",
+  "hooks": [
+    {
+      "name": "left_click",
+      "va": "0x00478BC7",
+      "file_offset": "0x00078BC7",
+      "first_16_bytes": "8B6C2454578BCB8B55005256E8382600",
+      "expected_prefix": "8B6C245457",
+      "source": "engine/src/extensions/display/displayext_hooks.cpp",
+      "evidence": "[esp+54h] supplies the Cell pointer; EDI carries the action",
+      "matches_executable": true
+    },
+    {
+      "name": "beacon_click",
+      "va": "0x00478C6D",
+      "file_offset": "0x00078C6D",
+      "first_16_bytes": "83FF2D75730FBF4D020FBF4500C1E108",
+      "expected_prefix": "83FF2D7573",
+      "source": "engine/src/new/beacon/beacon_hooks.cpp",
+      "evidence": "native action branch after EBP receives the Cell pointer",
+      "matches_executable": true
+    },
+    {
+      "name": "cursor_action",
+      "va": "0x005E8920",
+      "file_offset": "0x001E8920",
+      "first_16_bytes": "8B74241C85F67416E843FEEFFF8B1055",
+      "expected_prefix": "8B74241C85",
+      "source": "engine/src/extensions/mouse/mouseext_hooks.cpp",
+      "evidence": "existing What_Action hook calls the modified action classifier",
+      "matches_executable": true
+    },
+    {
+      "name": "beacon_action",
+      "va": "0x005E8C41",
+      "file_offset": "0x001E8C41",
+      "first_16_bytes": "A00595740084C00F843101000085F674",
+      "expected_prefix": "A005957400",
+      "source": "engine/src/new/beacon/beacon_hooks.cpp",
+      "evidence": "existing action hook returns at 0x005E8D7F for attack-move targeting",
+      "matches_executable": true
+    },
+    {
+      "name": "event_execute",
+      "va": "0x00494294",
+      "file_offset": "0x00094294",
+      "first_16_bytes": "8A068B7E06488B1CB983F822E9BB713D",
+      "expected_prefix": "8A068B7E06",
+      "source": "engine/src/extensions/event/eventext_hooks.cpp",
+      "evidence": "existing hook now cancels replaced attack-move orders",
+      "matches_executable": true
+    },
+    {
+      "name": "event_compress",
+      "va": "0x005B4530",
+      "file_offset": "0x001B4530",
+      "first_16_bytes": "83EC48535556894C241457B90B000000",
+      "expected_prefix": "83EC485355",
+      "source": "engine/src/extensions/event/eventext_hooks.cpp",
+      "evidence": "existing extended event compressor reads EventLength[38]",
+      "matches_executable": true
+    },
+    {
+      "name": "event_decompress",
+      "va": "0x005B4A40",
+      "file_offset": "0x001B4A40",
+      "first_16_bytes": "83EC485355568BF157B90B00000033C0",
+      "expected_prefix": "83EC485355",
+      "source": "engine/src/extensions/event/eventext_hooks.cpp",
+      "evidence": "existing extended event decoder reads EventLength[38]",
+      "matches_executable": true
+    },
+    {
+      "name": "mission_ai",
+      "va": "0x0062E9D1",
+      "file_offset": "0x0022E9D1",
+      "first_16_bytes": "E83AA6F2FF8A463584C00F8463070000",
+      "expected_prefix": "E83AA6F2FF",
+      "source": "engine/src/extensions/techno/technoext_hooks.cpp",
+      "evidence": "existing call patch reaches AttackMove::Tick",
+      "matches_executable": true
+    },
+    {
+      "name": "retaliation",
+      "va": "0x00636F00",
+      "file_offset": "0x00236F00",
+      "first_16_bytes": "83EC085355568BF1578B8EEC000000E8",
+      "expected_prefix": "83EC085355",
+      "source": "engine/src/extensions/techno/technoext_hooks.cpp",
+      "evidence": "existing replacement suppresses native retaliation during attack-move",
+      "matches_executable": true
+    },
+    {
+      "name": "limbo",
+      "va": "0x004A5E80",
+      "file_offset": "0x000A5E80",
+      "first_16_bytes": "83EC08558BE98A452F84C00F85A20000",
+      "expected_prefix": "83EC08558B",
+      "source": "engine/src/extensions/foot/footext_hooks.cpp",
+      "evidence": "existing replacement clears route on limbo",
+      "matches_executable": true
+    },
+    {
+      "name": "capture",
+      "va": "0x006324FF",
+      "file_offset": "0x002324FF",
+      "first_16_bytes": "8B4E2485C97412A1B8EA80006A006A00",
+      "expected_prefix": "8B4E2485C9",
+      "source": "engine/src/extensions/techno/technoext_hooks.cpp",
+      "evidence": "existing capture hook clears route",
+      "matches_executable": true
+    },
+    {
+      "name": "startup_protocol_crc",
+      "va": "0x005B35C0",
+      "file_offset": "0x001B35C0",
+      "first_16_bytes": "A190437E00894424228954241E8B138D",
+      "expected_prefix": "A190437E00",
+      "source": "engine/src/extensions/event/eventext_hooks.cpp",
+      "evidence": "new hook reads ScenarioCRC into EAX, continuation 0x005B35C5",
+      "matches_executable": true
+    },
+    {
+      "name": "simulation_crc",
+      "va": "0x005B58C0",
+      "file_offset": "0x001B58C0",
+      "first_16_bytes": "890D9498800083C414C3909090909090",
+      "expected_prefix": "890D94988000",
+      "source": "engine/src/extensions/event/eventext_hooks.cpp",
+      "evidence": "new hook replaces GameCRC store, continuation 0x005B58C6",
+      "matches_executable": true
+    }
+  ]
+}
